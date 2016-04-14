@@ -139,8 +139,8 @@ a:hover {
  * @extends btn
  */
 .btn-opencfp--primary {
-  background: #FFF;
-  color: #e24b3b;
+  background: black;
+  color: white;
 }
 
 .btn-opencfp--primary:hover {
@@ -149,7 +149,7 @@ a:hover {
 }
 
 .btn-opencfp--light {
-  background: #7e8690;
+  background: #8C8C8C;
   color: #FFF;
 }
 
@@ -160,8 +160,8 @@ a:hover {
 
 .btn-opencfp--outlined {
   background: transparent;
-  border-color: #FFF;
-  color: #FFF;
+  border-color: black;
+  color: black;
 }
 
 .btn-opencfp--outlined:hover {
