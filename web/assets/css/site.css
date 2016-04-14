@@ -144,8 +144,8 @@ a:hover {
 }
 
 .btn-opencfp--primary:hover {
-  background: #F7F7F7;
-  color: #e24b3b;
+  /*background: #F7F7F7;*/
+  color: #f0db4f;
 }
 
 .btn-opencfp--light {
@@ -385,6 +385,12 @@ a:hover {
 
 .navbar-opencfp {
   background: #374146;
+}
+
+.navbar-opencfp .injected-svg {
+  width: 40px;
+  height: auto;
+  margin-top: 7px;
 }
 
 .navbar-collapse {
