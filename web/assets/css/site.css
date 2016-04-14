@@ -186,7 +186,7 @@ a:hover {
 }
 
 .module__header {
-  background: #e24b3b;
+  background: #25458D;
   color: #FFF;
   padding: 1rem 2rem;
 }
@@ -417,7 +417,7 @@ a:hover {
 .navbar-opencfp .nav .open>a:focus
 {
   background: none;
-  border-color: #e24b3b;
+  border-color: #f0db4f;
 }
 
 .navbar-opencfp .navbar-toggle {
