@@ -6,11 +6,11 @@ body {
 }
 
 a {
-  color: #e24b3b;
+  color: #25458d;
 }
 
 a:hover {
-  color: #e97467;
+  color: #172E57;
 }
 
 .dashboard {
@@ -18,8 +18,8 @@ a:hover {
 }
 
 .header {
-  background: #e24b3b;
-  color: #FFF;
+  background: #f0db4f;
+  color: black;
   padding: 6rem 0;
 }
 
@@ -47,8 +47,8 @@ a:hover {
 }
 
 .section--primary {
-  background: #e24b3b;
-  color: #FFF;
+  background: #f0db4f;
+  color: black;
 }
 
 .section--light {
