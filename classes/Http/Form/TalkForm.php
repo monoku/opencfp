@@ -102,8 +102,8 @@ class TalkForm extends Form
     public function validateType()
     {
         $validTalkTypes = [
-            'regular',
-            'tutorial',
+            'talk',
+            'workshop',
         ];
 
         if (empty($this->_cleanData['type']) || !isset($this->_cleanData['type'])) {
