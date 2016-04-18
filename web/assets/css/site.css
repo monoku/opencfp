@@ -85,6 +85,22 @@ a:hover {
  * <button class="btn">Register</button>
  * <input type="submit" class="btn" value="Register">
  */
+.btn {
+  border-radius: 0;
+}
+.btn-success {
+  background: black;
+  border-color: black;
+  color: white;
+}
+.btn-success:hover,
+.btn-success:focus,
+.btn-success:active {
+  background: rgba(0,0,0,0.7);
+  border-color: rgba(0,0,0,0.7);
+  text-decoration: none;
+  color: white;
+}
 .btn-opencfp {
   border: 2px solid transparent;
   display: inline-block;
@@ -145,9 +161,12 @@ a:hover {
   color: white;
 }
 
-.btn-opencfp--primary:hover {
+.btn-opencfp--primary:hover,
+.btn-opencfp--primary:focus, 
+.btn-opencfp--primary:active {
   /*background: #F7F7F7;*/
   color: #f0db4f;
+  text-decoration: none;
 }
 
 .btn-opencfp--light {

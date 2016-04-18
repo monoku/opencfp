@@ -1,21 +1,21 @@
 application:
-  title: OpenCFP
-  url: http://cfp.dev
-  email: contact@openconf.com
-  eventurl: http://myenvent.com
-  event_location: Miami, FL
-  enddate: Oct. 14th, 2016
-  show_submission_count: false
-  airport: MIA
-  arrival: 2014-10-26
-  departure: 2014-10-31
-  secure_ssl: true
+  title: JSConf Colombia 2016 | CFP
+  url: http://cfp.jsconf.co
+  email: hola@jsconf.co
+  eventurl: http://jsconf.co
+  event_location: Medellin, Colombia
+  enddate: May. 30th, 2016
+  show_submission_count: true
+  airport: BOG
+  arrival: 2016-10-05
+  departure: 2016-10-10
+  secure_ssl: false
   online_conference: false
   date_format: d/m/Y
-  date_timezone: "UTC"
+  date_timezone: "GMT-5"
 
 api:
-  enabled: true
+  enabled: false
 
 cache:
   enabled: false
