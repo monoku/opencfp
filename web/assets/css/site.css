@@ -66,11 +66,13 @@ a:hover {
 
 .headline--alpha {
   font-weight: 700;
+  margin-top: 3.5rem;
 }
 
 .headline--beta {
   font-weight: 300;
   text-transform: uppercase;
+  margin-top: 5rem;
 }
 
 .headline--centered {
