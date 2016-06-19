@@ -19,9 +19,13 @@ class SpeakersController extends BaseController
 
     public function indexAction(Request $req)
     {
+        if (!$this->userHasAccess()) {
+            return $this->redirectTo('dashboard');
+        }
+
         /* @var Locator $spot */
-        $spot = $this->app['spot'];
-        
+        $spot = $this->service('spot');
+
         $rawSpeakers = $spot
             ->mapper(\OpenCFP\Domain\Entity\User::class)
             ->all()
@@ -85,20 +89,19 @@ class SpeakersController extends BaseController
 
     public function viewAction(Request $req)
     {
-        // Check if user is an logged in and an Admin
         if (!$this->userHasAccess()) {
             return $this->redirectTo('dashboard');
         }
 
         /* @var Locator $spot */
-        $spot = $this->app['spot'];
-        
+        $spot = $this->service('spot');
+
         // Get info about the speaker
         $user_mapper = $spot->mapper(\OpenCFP\Domain\Entity\User::class);
         $speaker_details = $user_mapper->get($req->get('id'));
 
         if (empty($speaker_details)) {
-            $this->app['session']->set('flash', [
+            $this->service('session')->set('flash', [
                 'type' => 'error',
                 'short' => 'Error',
                 'ext' => "Could not find requested speaker",
@@ -145,14 +148,13 @@ class SpeakersController extends BaseController
 
     public function deleteAction(Request $req)
     {
-        // Check if user is an logged in and an Admin
         if (!$this->userHasAccess()) {
             return $this->redirectTo('dashboard');
         }
 
         /* @var Locator $spot */
-        $spot = $this->app['spot'];
-        
+        $spot = $this->service('spot');
+
         $mapper = $spot->mapper(\OpenCFP\Domain\Entity\User::class);
         $speaker = $mapper->get($req->get('id'));
         $response = $mapper->delete($speaker);
@@ -168,7 +170,7 @@ class SpeakersController extends BaseController
         }
 
         // Set flash message
-        $this->app['session']->set('flash', [
+        $this->service('session')->set('flash', [
             'type' => $type,
             'short' => $short,
             'ext' => $ext,

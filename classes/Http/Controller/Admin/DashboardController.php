@@ -13,17 +13,21 @@ class DashboardController extends BaseController
 
     public function indexAction(Request $req)
     {
+        if (!$this->userHasAccess()) {
+            return $this->redirectTo('dashboard');
+        }
+
         /* @var Locator $spot */
-        $spot = $this->app['spot'];
+        $spot = $this->service('spot');
 
         $user_mapper = $spot->mapper(\OpenCFP\Domain\Entity\User::class);
         $speaker_total = $user_mapper->all()->count();
 
-        $talk_mapper = $this->app['spot']->mapper(\OpenCFP\Domain\Entity\Talk::class);
-        $favorite_mapper = $this->app['spot']->mapper(\OpenCFP\Domain\Entity\Favorite::class);
+        $talk_mapper = $this->service('spot')->mapper(\OpenCFP\Domain\Entity\Talk::class);
+        $favorite_mapper = $this->service('spot')->mapper(\OpenCFP\Domain\Entity\Favorite::class);
 
         /* @var Sentry $sentry */
-        $sentry = $this->app['sentry'];
+        $sentry = $this->service('sentry');
 
         $recent_talks = $talk_mapper->getRecent($sentry->getUser()->getId());
 

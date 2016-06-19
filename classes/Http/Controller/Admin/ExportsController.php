@@ -13,27 +13,39 @@ class ExportsController extends BaseController
 
     public function anonymousTalksExportAction(Request $req)
     {
+        if (!$this->userHasAccess()) {
+            return $this->redirectTo('dashboard');
+        }
+
         return $this->talksExportAction(false);
     }
 
     public function attributedTalksExportAction(Request $req)
     {
+        if (!$this->userHasAccess()) {
+            return $this->redirectTo('dashboard');
+        }
+
         return $this->talksExportAction(true);
     }
 
     public function selectedTalksExportAction(Request $req)
     {
+        if (!$this->userHasAccess()) {
+            return $this->redirectTo('dashboard');
+        }
+
         return $this->talksExportAction(true, ['selected' => 1]);
     }
 
     public function emailExportAction(Request $req)
     {
         if (!$this->userHasAccess()) {
-            return $this->redirectTo('login');
+            return $this->redirectTo('dashboard');
         }
 
         /* @var Locator $spot */
-        $spot = $this->app['spot'];
+        $spot = $this->service('spot');
 
         $mapper = $spot->mapper('OpenCFP\Domain\Entity\Talk');
         $talks = $mapper->all();
@@ -53,17 +65,13 @@ class ExportsController extends BaseController
 
     private function talksExportAction($attributed, $where = null)
     {
-        if (!$this->userHasAccess()) {
-            return $this->redirectTo('login');
-        }
-
         $sort = [ "created_at" => "DESC" ];
 
         /* @var Sentry $sentry */
-        $sentry = $this->app['sentry'];
+        $sentry = $this->service('sentry');
 
         $admin_user_id = $sentry->getUser()->getId();
-        $mapper = $this->app['spot']->mapper('OpenCFP\Domain\Entity\Talk');
+        $mapper = $this->service('spot')->mapper('OpenCFP\Domain\Entity\Talk');
         $talks = $mapper->getAllPagerFormatted($admin_user_id, $sort, $attributed, $where);
 
         foreach ($talks as $talk => $info) {
@@ -83,7 +91,7 @@ class ExportsController extends BaseController
     private function csvReturn($contents, $filename = 'data')
     {
         if (count($contents) === 0) {
-            $this->app['session']->set('flash', [
+            $this->service('session')->set('flash', [
                 'type' => 'error',
                 'short' => 'Error',
                 'ext' => 'There were no talks that matched selected criteria.',

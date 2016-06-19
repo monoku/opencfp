@@ -14,9 +14,13 @@ class AdminsController extends BaseController
 
     public function indexAction(Request $req)
     {
+        if (!$this->userHasAccess()) {
+            return $this->redirectTo('dashboard');
+        }
+
         /* @var Sentry $sentry */
-        $sentry = $this->app['sentry'];
-        
+        $sentry = $this->service('sentry');
+
         $adminGroup = $sentry->getGroupProvider()->findByName('Admin');
         $adminUsers = $sentry->findAllUsersInGroup($adminGroup);
 
@@ -52,13 +56,17 @@ class AdminsController extends BaseController
 
     public function removeAction(Request $req)
     {
+        if (!$this->userHasAccess()) {
+            return $this->redirectTo('dashboard');
+        }
+
         /* @var Sentry $sentry */
-        $sentry = $this->app['sentry'];
-        
+        $sentry = $this->service('sentry');
+
         $admin = $sentry->getUser();
 
         if ($admin->getId() == $req->get('id')) {
-            $this->app['session']->set('flash', [
+            $this->service('session')->set('flash', [
                 'type' => 'error',
                 'short' => 'Error',
                 'ext' => 'Sorry, you cannot remove yourself as Admin.',
@@ -68,8 +76,8 @@ class AdminsController extends BaseController
         }
 
         /* @var Locator $spot */
-        $spot = $this->app['spot'];
-        
+        $spot = $this->service('spot');
+
         $mapper = $spot->mapper(\OpenCFP\Domain\Entity\User::class);
         $user_data = $mapper->get($req->get('id'))->toArray();
         $user = $sentry->getUserProvider()->findByLogin($user_data['email']);
@@ -78,7 +86,7 @@ class AdminsController extends BaseController
         $response = $user->removeGroup($adminGroup);
 
         if ($response == true) {
-            $this->app['session']->set('flash', [
+            $this->service('session')->set('flash', [
                 'type' => 'success',
                 'short' => 'Success',
                 'ext' => 'Successfully removed the Admin!',
@@ -86,7 +94,7 @@ class AdminsController extends BaseController
         }
 
         if ($response == false) {
-            $this->app['session']->set('flash', [
+            $this->service('session')->set('flash', [
                 'type' => 'error',
                 'short' => 'Error',
                 'ext' => 'We were unable to remove the Admin. Please try again.',
