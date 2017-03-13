@@ -30,6 +30,32 @@ class PagesController extends BaseController
 
         return [
             'number_of_talks' => $numberOfTalks,
+            'talkCategories' => $this->getTalkCategories(),
         ];
     }
+
+    private function getTalkCategories()
+    {
+        $categories = $this->app->config('talk.categories');
+
+        if ($categories === null) {
+            $categories = [
+                'api' => 'APIs (REST, SOAP, etc.)',
+                'continuousdelivery'=> 'Continuous Delivery',
+                'database'=> 'Database',
+                'development'=> 'Development',
+                'devops' => 'Devops',
+                'framework' => 'Framework',
+                'ibmi' => 'IBMi',
+                'javascript' => 'JavaScript',
+                'security' => 'Security',
+                'testing' => 'Testing',
+                'uiux' => 'UI/UX',
+                'other' => 'Other',
+            ];
+        }
+
+        return $categories;
+    }
+
 }
