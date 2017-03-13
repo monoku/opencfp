@@ -11,8 +11,8 @@
         <div class="module__body">
             <h2 class="headline">{{ talk.title }}</h2>
             <p>
-                {% if talk.level is defined %}<span class="label label-primary">{{ talk.level }}</span>{% endif %}
-                {% if talk.category is defined %}<span class="label label-warning">{{ talk.category }}</span>{% endif %}
+                {% if talk.level is defined %}<span class="label label-primary">{{ talkHelper.getLevelDisplayName(talk.level) }}</span>{% endif %}
+                {% if talk.category is defined %}<span class="label label-warning">{{ talkHelper.getCategoryDisplayName(talk.category) }}</span>{% endif %}
             </p>
 
             {% if site.anonymize == false %}
@@ -35,9 +35,9 @@
                 <div role="tabpanel" class="tab-pane" id="additional-info">
                     <p>
                         <strong>Slides:</strong> {% if talk.slides is defined %}{{ talk.slides }}{% endif %}<br />
-                        <strong>Type:</strong> {{ talk.type }}<br />
-                        <strong>Level:</strong> {% if talk.level is defined %}{{ talk.level }}{% endif %}<br />
-                        <strong>Category:</strong> {% if talk.category is defined %}{{ talk.category }}{% endif %}<br />
+                        <strong>Type:</strong> {{ talkHelper.getTypeDisplayName(talk.type) }}<br />
+                        <strong>Level:</strong> {% if talk.level is defined %}{{ talkHelper.getLevelDisplayName(talk.level) }}{% endif %}<br />
+                        <strong>Category:</strong> {% if talk.category is defined %}{{ talkHelper.getCategoryDisplayName(talk.category) }}{% endif %}<br />
                         <strong>Desired:</strong> {% if talk.desired is defined %}{{ talk.desired ? 'Yes' : 'No' }}{% endif %}<br />
                         <strong>Sponsor:</strong> {% if talk.sponsor is defined %}{{ talk.sponsor ? 'Yes' : 'No' }}{% endif %}<br />
                     </p>
@@ -55,7 +55,7 @@
                 <ul class="comment-list">
                 {% for comment in talk.comments %}
                     <li>
-                        <img src="{{ comment.user.photo_path ? '/uploads/' ~ comment.user.photo_path : '/assets/img/dummyphoto.jpg' }}" class="comment-photo" alt="{{ comment.user.first_name }} {{ comment.user.last_name }}">
+                        <img src="{{ comment.user.get('photo_path') ? '/uploads/' ~ comment.user.photo_path : '/assets/img/dummyphoto.jpg' }}" class="comment-photo" alt="{{ comment.user.first_name }} {{ comment.user.last_name }}">
                         <p>{{ comment.message }}</p>
                         <span class="comment-list__meta">
                             <span class="comment-list__author">{{ comment.user.first_name }} {{ comment.user.last_name }}</span> - {{ comment.created|date("F jS \\a\\t g:ia") }}

@@ -4,7 +4,7 @@ application:
   email: contact@openconf.com
   eventurl: http://localhost
   event_location: Miami, FL
-  enddate: Oct. 14th, 2016
+  enddate: Oct. 14th, 2018
   show_submission_count: false
   airport: MIA
   arrival: 2014-10-26
@@ -14,6 +14,41 @@ application:
   date_format: m-d-Y
   anonymize: false
 
+talk:
+  categories:
+    3d_webgl_vr: 3D / WebGL / VR
+    async: Async
+    art: Art
+    api: API
+    audio_music: Audio &amp; Music
+    circuit_breakers: Circuit Breakers
+    continuous_delivery: Continuous Delivery
+    data_visualization: Data Visualization
+    database_big: Database / Big Data
+    dev_ops: Dev Ops
+    dev_tools: Dev Tools
+    distributed_programming: Distributed Programming
+    es_next: ES 6 | 2015 | 2016 | Next
+    functional_programming: Functional Programming
+    hardware: Hardware
+    http_microservices: HTTP Microservices
+    machine_learning: Machine Learning with JS
+    new_frontend_technologies: "New frontend technologies: React / Redux / Angular 2 / Ember 2"
+    nodejs: Node.js
+    other_js_languages: "Other JS Languages: TypeScript, Flow, Dart, ClojureScript, Elm, CoffeeScript"
+    performance: Performance
+    reactive_programming: Reactive Programming
+    security: Security
+    testing: Testing
+    ui_ux: UI/UX
+    other: Other
+  levels:
+    entry: Entry level
+    mid: Mid-level
+    advanced: Advanced
+  types:
+    talk: Talk (35 min)
+    workshop: Workshop (1:30 hrs)
 
 api:
   enabled: true

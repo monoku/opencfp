@@ -2,14 +2,16 @@
 
 namespace OpenCFP\Http\Controller\Admin;
 
+use Cartalyst\Sentry\Sentry;
+use OpenCFP\Domain\Entity\User;
 use OpenCFP\Domain\Services\AirportInformationDatabase;
 use OpenCFP\Http\Controller\BaseController;
 use OpenCFP\Http\Controller\FlashableTrait;
 use Pagerfanta\Adapter\ArrayAdapter;
 use Pagerfanta\Pagerfanta;
 use Pagerfanta\View\TwitterBootstrap3View;
-use Silex\Application;
 use Spot\Locator;
+use Spot\Mapper;
 use Symfony\Component\HttpFoundation\Request;
 
 class SpeakersController extends BaseController
@@ -22,6 +24,9 @@ class SpeakersController extends BaseController
         if (!$this->userHasAccess()) {
             return $this->redirectTo('dashboard');
         }
+
+        /* @var Sentry $sentry */
+        $sentry = $this->service('sentry');
 
         /* @var Locator $spot */
         $spot = $this->service('spot');
@@ -53,6 +58,18 @@ class SpeakersController extends BaseController
 
             return $speaker;
         }, $rawSpeakers);
+
+        $adminGroup = $sentry->getGroupProvider()->findByName('Admin');
+        $adminUsers = $sentry->findAllUsersInGroup($adminGroup);
+        $adminUserIds = array_column($adminUsers->toArray(), 'id');
+
+        foreach ($rawSpeakers as $key => $each) {
+            if (in_array($each['id'], $adminUserIds)) {
+                $rawSpeakers[$key]['is_admin'] = true;
+            } else {
+                $rawSpeakers[$key]['is_admin'] = false;
+            }
+        }
 
         // Set up our page stuff
         $adapter = new ArrayAdapter($rawSpeakers);
@@ -157,16 +174,30 @@ class SpeakersController extends BaseController
 
         $mapper = $spot->mapper(\OpenCFP\Domain\Entity\User::class);
         $speaker = $mapper->get($req->get('id'));
-        $response = $mapper->delete($speaker);
 
-        $ext = "Successfully deleted the requested user";
-        $type = 'success';
-        $short = 'Success';
+        $connection = $spot->config()->connection();
+
+        $connection->beginTransaction();
+
+        try {
+            $this->removeSpeakerTalks($speaker);
+            $response = $mapper->delete($speaker);
+        } catch (\Exception $e) {
+            $response = false;
+        }
 
         if ($response === false) {
+            $connection->rollBack();
+
             $ext = "Unable to delete the requested user";
             $type = 'error';
             $short = 'Error';
+        } else {
+            $connection->commit();
+
+            $ext = "Successfully deleted the requested user";
+            $type = 'success';
+            $short = 'Success';
         }
 
         // Set flash message
@@ -177,5 +208,37 @@ class SpeakersController extends BaseController
         ]);
 
         return $this->redirectTo('admin_speakers');
+    }
+
+    /**
+     * @param User $speaker
+     */
+    private function removeSpeakerTalks(User $speaker)
+    {
+        $spot = $this->service('spot');
+
+        /**
+         * @var Mapper $talkMapper
+         * @var Mapper $talkCommentMapper
+         * @var Mapper $talkMetaMapper
+         */
+        $talkMapper = $spot->mapper(\OpenCFP\Domain\Entity\Talk::class);
+        $talkCommentMapper = $spot->mapper(\OpenCFP\Domain\Entity\TalkComment::class);
+        $talkMetaMapper = $spot->mapper(\OpenCFP\Domain\Entity\TalkMeta::class);
+
+        $talks = $speaker->talks->execute();
+
+        /** @var \OpenCFP\Domain\Entity\Talk $talk */
+        foreach ($talks as $talk) {
+            foreach ($talk->comments->execute() as $comment) {
+                $talkCommentMapper->delete($comment);
+            }
+
+            foreach ($talk->meta->execute() as $meta) {
+                $talkMetaMapper->delete($meta);
+            }
+
+            $talkMapper->delete($talk);
+        }
     }
 }

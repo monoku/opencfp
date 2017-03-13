@@ -54,8 +54,8 @@ a:hover {
 }
 
 .section--light {
-  background: #EEE;
-  color: #7e8690;
+  background: rgb(0,176,216);
+  color: #fff;
 }
 
 .headline {
@@ -164,7 +164,7 @@ a:hover {
 }
 
 .btn-opencfp--primary:hover,
-.btn-opencfp--primary:focus, 
+.btn-opencfp--primary:focus,
 .btn-opencfp--primary:active {
   /*background: #F7F7F7;*/
   color: #f0db4f;
@@ -324,7 +324,7 @@ a:hover {
 .primary-text,
 .megaphone-cover,
 .megaphone-end {
-  fill: #e24b3b;
+  fill: rgb(27,117,187);
 }
 
 .base-text,

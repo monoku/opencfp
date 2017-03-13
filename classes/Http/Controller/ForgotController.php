@@ -4,6 +4,7 @@ namespace OpenCFP\Http\Controller;
 
 use Cartalyst\Sentry\Sentry;
 use Cartalyst\Sentry\Users\UserNotFoundException;
+use Exception;
 use OpenCFP\Http\Form\ForgotForm;
 use OpenCFP\Http\Form\ResetForm;
 use Symfony\Component\HttpFoundation\Request;
@@ -14,20 +15,20 @@ class ForgotController extends BaseController
 
     public function indexAction()
     {
-        $form = $this->service('form.factory')->create(new ForgotForm());
-
+        $form = $this->service('form.factory')->createBuilder(ForgotForm::class)->getForm();
         $data = [
             'form' => $form->createView(),
-            'current_page' => "Forgot Password",
+            'current_page' => 'Forgot Password'
         ];
-
         return $this->render('user/forgot_password.twig', $data);
     }
 
     public function sendResetAction(Request $req)
     {
-        $form = $this->service('form.factory')->create(new ForgotForm());
-        $form->bind($req);
+        $form = $this->service('form.factory')
+            ->createBuilder(ForgotForm::class)
+            ->getForm();
+        $form->handleRequest($req);
 
         if (!$form->isValid()) {
             $this->service('session')->set('flash', [
@@ -45,11 +46,9 @@ class ForgotController extends BaseController
         try {
             /* @var Sentry $sentry */
             $sentry = $this->service('sentry');
-
             $user = $sentry->getUserProvider()->findByLogin($data['email']);
         } catch (UserNotFoundException $e) {
             $this->service('session')->set('flash', $this->successfulSendFlashParameters($data['email']));
-
             return $this->redirectTo('forgot_password');
         }
 
@@ -73,6 +72,10 @@ class ForgotController extends BaseController
 
     public function resetAction(Request $req)
     {
+        if (empty($req->get('reset_code'))) {
+            throw new Exception();
+        }
+
         $errorMessage = "The reset you have requested appears to be invalid, please try again.";
         $error = 0;
         try {
@@ -113,6 +116,11 @@ class ForgotController extends BaseController
     {
         $user_id = $req->get('user_id');
         $reset_code = $req->get('reset_code');
+
+        if (empty($reset_code)) {
+            throw new Exception();
+        }
+
         $form_options = [
             'user_id' => $user_id,
             'reset_code' => $reset_code,
@@ -157,6 +165,10 @@ class ForgotController extends BaseController
         $user_id = $postArray['reset']['user_id'];
         $reset_code = $postArray['reset']['reset_code'];
         $password = $postArray['reset']['password']['password'];
+
+        if (empty($reset_code)) {
+            throw new Exception();
+        }
 
         try {
             /* @var Sentry $sentry */

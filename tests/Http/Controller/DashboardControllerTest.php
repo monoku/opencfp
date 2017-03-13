@@ -5,14 +5,15 @@ namespace OpenCFP\Test\Http\Controller;
 use Cartalyst\Sentry\Sentry;
 use Mockery as m;
 use OpenCFP\Application;
+use OpenCFP\Domain\CallForProposal;
 use OpenCFP\Domain\Speaker\SpeakerProfile;
 use OpenCFP\Environment;
+use OpenCFP\Http\Controller\DashboardController;
 use OpenCFP\Test\Util\Faker\GeneratorTrait;
 use Symfony\Component\HttpFoundation\Session\Session;
-use Symfony\Component\HttpFoundation\Session\Storage\MockFileSessionStorage;
 use Twig_Environment;
 
-class DashboardControllerTest extends \PHPUnit_Framework_TestCase
+class DashboardControllerTest extends \PHPUnit\Framework\TestCase
 {
     use GeneratorTrait;
 
@@ -25,7 +26,7 @@ class DashboardControllerTest extends \PHPUnit_Framework_TestCase
     public function indexDisplaysUserAndTalks()
     {
         $app = new Application(BASE_PATH, Environment::testing());
-        $app['session'] = new Session(new MockFileSessionStorage());
+        $app['session.test'] = true;
 
         // Set things up so Sentry believes we're logged in
         $user = m::mock('StdClass');
@@ -39,6 +40,9 @@ class DashboardControllerTest extends \PHPUnit_Framework_TestCase
         $sentry->shouldReceive('getUser')->andReturn($user);
         $app['sentry'] = $sentry;
 
+        $app['callforproposal'] = m::mock(CallForProposal::class);
+        $app['callforproposal']->shouldReceive('isOpen')->andReturn(true);
+
         // Create a test double for a talk in profile
         $talk = m::mock('StdClass');
         $talk->shouldReceive('title')->andReturn('Test Title');
@@ -51,6 +55,7 @@ class DashboardControllerTest extends \PHPUnit_Framework_TestCase
         $profile->shouldReceive('photo', 'company', 'twitter', 'airport', 'bio', 'info', 'transportation', 'hotel');
         $profile->shouldReceive('talks')->andReturn([$talk]);
 
+
         $speakerService = m::mock('StdClass');
         $speakerService->shouldReceive('findProfile')->andReturn($profile);
 
@@ -61,7 +66,7 @@ class DashboardControllerTest extends \PHPUnit_Framework_TestCase
         ob_end_clean();
 
         // Instantiate the controller and run the indexAction
-        $controller = new \OpenCFP\Http\Controller\DashboardController();
+        $controller = new DashboardController();
         $controller->setApplication($app);
 
         $response = $controller->showSpeakerProfile();
@@ -76,7 +81,11 @@ class DashboardControllerTest extends \PHPUnit_Framework_TestCase
     {
         $faker = $this->getFaker();
         $app = new Application(BASE_PATH, Environment::testing());
-        $app['session'] = new Session(new MockFileSessionStorage());
+        $app['session.test'] = true;
+
+        $app['callforproposal'] = m::mock(CallForProposal::class);
+        $app['callforproposal']->shouldReceive('isOpen')->andReturn(true);
+
 
         // Specify configuration to enable `online_conference` settings.
         // TODO Bake something like this as a trait. Dealing with mocking

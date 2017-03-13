@@ -21,6 +21,19 @@ class TalkForm extends Form
         'user_id',
     ];
 
+    public function __construct(array $data, \HTMLPurifier $purifier, array $options = [])
+    {
+        if (!key_exists('desired', $data) || $data['desired'] === null) {
+            $data['desired'] = 0;
+        }
+
+        if (!key_exists('sponsor', $data) || $data['sponsor'] === null) {
+            $data['sponsor'] = 0;
+        }
+
+        parent::__construct($data, $purifier, $options);
+    }
+
     /**
      * Santize all our fields that were submitted
      *
@@ -101,10 +114,7 @@ class TalkForm extends Form
      */
     public function validateType()
     {
-        $validTalkTypes = [
-            'talk',
-            'workshop',
-        ];
+        $validTalkTypes = $this->getOption('types');
 
         if (empty($this->_cleanData['type']) || !isset($this->_cleanData['type'])) {
             $this->_addErrorMessage("You must choose what type of talk you are submitting");
@@ -112,7 +122,7 @@ class TalkForm extends Form
             return false;
         }
 
-        if (!in_array($this->_cleanData['type'], $validTalkTypes)) {
+        if (!isset($validTalkTypes[$this->_cleanData['type']])) {
             $this->_addErrorMessage("You did not choose a valid talk type");
 
             return false;
@@ -123,11 +133,7 @@ class TalkForm extends Form
 
     public function validateLevel()
     {
-        $validLevels = [
-            'entry',
-            'mid',
-            'advanced',
-        ];
+        $validLevels = $this->getOption('levels');
 
         if (empty($this->_cleanData['level']) || !isset($this->_cleanData['level'])) {
             $this->_addErrorMessage("You must choose what level of talk you are submitting");
@@ -135,7 +141,7 @@ class TalkForm extends Form
             return false;
         }
 
-        if (!in_array($this->_cleanData['level'], $validLevels)) {
+        if (!isset($validLevels[$this->_cleanData['level']])) {
             $this->_addErrorMessage("You did not choose a valid talk level");
 
             return false;
@@ -146,44 +152,15 @@ class TalkForm extends Form
 
     public function validateCategory()
     {
-        $validCategories = [
-            '3d_webgl_vr',
-            'async',
-            'art',
-            'api',
-            'audio_music',
-            'circuit_breakers',
-            'continuous_delivery',
-            'data_visualization',
-            'database_big data',
-            'dev_ops',
-            'dev_tools',
-            'distributed_programming',
-            'es_next',
-            'functional_programming',
-            'hardware',
-            'http_microservices',
-            'machine_learning',
-            'new_frontend_technologies',
-            'nodejs',
-            'other_js_languages',
-            'performance',
-            'reactive_programming',
-            'security',
-            'testing',
-            'ui_ux',
-            'other',
-        ];
+        $validCategories = $this->getOption('categories');
 
         if (empty($this->_cleanData['category']) || !isset($this->_cleanData['category'])) {
             $this->_addErrorMessage("You must choose what category of talk you are submitting");
-
             return false;
         }
 
-        if (!in_array($this->_cleanData['category'], $validCategories)) {
+        if (!isset($validCategories[$this->_cleanData['category']])) {
             $this->_addErrorMessage("You did not choose a valid talk category");
-
             return false;
         }
 

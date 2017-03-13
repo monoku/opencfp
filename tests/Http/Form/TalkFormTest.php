@@ -4,7 +4,7 @@ namespace OpenCFP\Test\Http\Form;
 
 use OpenCFP\Test\Util\Faker\GeneratorTrait;
 
-class TalkFormTest extends \PHPUnit_Framework_TestCase
+class TalkFormTest extends \PHPUnit\Framework\TestCase
 {
     use GeneratorTrait;
 
@@ -66,6 +66,49 @@ class TalkFormTest extends \PHPUnit_Framework_TestCase
             [serialize($badData), false],
             [serialize($goodData), true],
             [serialize($extendedData), true],
+        ];
+    }
+
+    /**
+     * Test that form object correctly detects if all the required fields
+     * are in the user-submitted data
+     *
+     * @test
+     * @dataProvider hasNoDesiredOrSponsorProvider
+     * @param array   $rawData  serialized user-submitted data
+     * @param boolean $response
+     */
+    public function submitsTalkWhenNoDesiredOrSponrosIncluded($rawData, $response)
+    {
+        $data = unserialize($rawData);
+        $form = new \OpenCFP\Http\Form\TalkForm($data, $this->purifier);
+        $this->assertEquals(
+            $response,
+            $form->hasRequiredFields(),
+            '\OpenCFP\Form\TalkForm::hasRequired() did not work correctly'
+        );
+    }
+
+    /**
+     * Data provider correctlyDetectsRequiredFields
+     *
+     * @return array
+     */
+    public function hasNoDesiredOrSponsorProvider()
+    {
+        $goodData = [
+            'title' => 'Talk Title',
+            'description' => 'Description of our talk',
+            'type' => 'session',
+            'category' => 'development',
+            'level' => 'entry',
+            'slides' => 'http://slideshare.net',
+            'other' => 'Misc comments',
+            'user_id' => 1,
+        ];
+
+        return [
+            [serialize($goodData), true],
         ];
     }
 
@@ -155,7 +198,11 @@ class TalkFormTest extends \PHPUnit_Framework_TestCase
     public function typeValidatesCorrectly($type, $expectedResponse)
     {
         $data = ['type' => $type];
-        $form = new \OpenCFP\Http\Form\TalkForm($data, $this->purifier);
+        $form = new \OpenCFP\Http\Form\TalkForm(
+            $data,
+            $this->purifier,
+            ['types' => ['talk' => 'Talk (35 min)', 'workshop' => 'Workshop (1:30 hrs)']]
+        );
         $form->sanitize();
 
         $this->assertEquals(
@@ -184,6 +231,45 @@ class TalkFormTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
+     * Test that validates the talk category
+     *
+     * @test
+     * @dataProvider categoryProvider
+     * @param string  $category
+     * @param boolean $expectedResponse
+     */
+    public function categoryValidatesCorrectly($category, $expectedResponse)
+    {
+        $data = ['category' => $category];
+        $form = new \OpenCFP\Http\Form\TalkForm($data, $this->purifier, ['categories' => ['test1' => 'Test 1', 'test2' => 'Test 2']]);
+        $form->sanitize();
+
+        $this->assertEquals(
+            $expectedResponse,
+            $form->validateCategory(),
+            '\OpenCFP\Form\TalkForm::validateType() did not apply validation rules correctly'
+        );
+    }
+
+    /**
+     * Data provider for typeValidatesCorrectly
+     *
+     * @return boolean
+     */
+    public function categoryProvider()
+    {
+        return [
+            ['test1', true],
+            ['test2', true],
+            ['foo', false],
+            [null, false],
+            [false, false],
+            [1, false],
+            [true, false],
+        ];
+    }
+
+    /**
      * Data provider for speakerIdValidates
      *
      * @return array
@@ -202,6 +288,48 @@ class TalkFormTest extends \PHPUnit_Framework_TestCase
             [true, false, false],
             [false, false, false],
             ['user', false, false],
+        ];
+    }
+
+    /**
+     * Test that validates the talk type
+     *
+     * @test
+     * @dataProvider levelProvider
+     * @param string $level
+     * @param boolean $expectedResponse
+     */
+    public function levelValidatesCorrectly($level, $expectedResponse)
+    {
+        $data = ['level' => $level];
+        $form = new \OpenCFP\Http\Form\TalkForm(
+            $data,
+            $this->purifier,
+            ['levels' => ['entry' => 'Entry', 'advanced' => 'Advanced']]
+        );
+        $form->sanitize();
+        $this->assertEquals(
+            $expectedResponse,
+            $form->validateLevel(),
+            '\OpenCFP\Form\TalkForm::validateType() did not apply validation rules correctly'
+        );
+    }
+
+    /**
+     * Data provider for levelValidatesCorrectly
+     *
+     * @return array
+     */
+    public function levelProvider()
+    {
+        return [
+            ['advanced', true],
+            ['entry', true],
+            ['foo', false],
+            [null, false],
+            [false, false],
+            [1, false],
+            [true, false],
         ];
     }
 }

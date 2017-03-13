@@ -7,6 +7,7 @@ use OpenCFP\Application\NotAuthorizedException;
 use OpenCFP\Application\Speakers;
 use OpenCFP\Http\Form\TalkForm;
 use Silex\Application;
+use Spot\Entity\Collection;
 use Spot\Locator;
 use Swift_Message;
 use Symfony\Component\HttpFoundation\Request;
@@ -17,18 +18,71 @@ class TalkController extends BaseController
     use FlashableTrait;
 
     /**
-     * Check to see if the CfP for this app is still open
-     *
-     * @param  integer $current_time
-     * @return boolean
+     * @param $request_data
+     * @return TalkForm
      */
-    public function isCfpOpen($current_time)
+    private function getTalkForm($request_data)
     {
-        if ($current_time < strtotime($this->app->config('application.enddate') . ' 11:59 PM')) {
-            return true;
+        $options = [
+            'categories' => $this->getTalkCategories(),
+            'levels' => $this->getTalkLevels(),
+            'types' => $this->getTalkTypes(),
+        ];
+        $form = new TalkForm($request_data, $this->service('purifier'), $options);
+        return $form;
+    }
+
+    private function getTalkCategories()
+    {
+        $categories = $this->app->config('talk.categories');
+
+        if ($categories === null) {
+            $categories = [
+                'api' => 'APIs (REST, SOAP, etc.)',
+                'continuousdelivery'=> 'Continuous Delivery',
+                'database'=> 'Database',
+                'development'=> 'Development',
+                'devops' => 'Devops',
+                'framework' => 'Framework',
+                'ibmi' => 'IBMi',
+                'javascript' => 'JavaScript',
+                'security' => 'Security',
+                'testing' => 'Testing',
+                'uiux' => 'UI/UX',
+                'other' => 'Other',
+            ];
         }
 
-        return false;
+        return $categories;
+    }
+
+    private function getTalkTypes()
+    {
+        $types = $this->app->config('talk.types');
+
+        if ($types === null) {
+            $types = [
+                'talk' => 'Talk (30 mins)',
+                'workshop' => 'Workshop (1:30 hrs)',
+            ];
+        }
+
+        return $types;
+    }
+
+    private function getTalkLevels()
+    {
+        $levels = $this->app->config('talk.levels');
+
+        if ($levels === null) {
+            $levels = [
+                'entry' => 'Entry level',
+                'mid' => 'Mid-level',
+                'advanced' => 'Advanced',
+            ];
+        }
+
+        return $levels;
     }
 
     /**
@@ -82,7 +136,7 @@ class TalkController extends BaseController
 
         // You can only edit talks while the CfP is open
         // This will redirect to "view" the talk in a read-only template
-        if (! $this->isCfpOpen(strtotime('now'))) {
+        if (! $this->service('callforproposal')->isOpen()) {
             $this->service('session')->set('flash', [
                 'type' => 'error',
                 'short' => 'Read Only',
@@ -102,14 +156,18 @@ class TalkController extends BaseController
         $spot = $this->service('spot');
 
         $talk_mapper = $spot->mapper(\OpenCFP\Domain\Entity\Talk::class);
-        $talk_info = $talk_mapper->get($talk_id)->toArray();
+        $talk_info = $talk_mapper->where(['id' => $talk_id])->execute()->first()->toArray();
 
         if ($talk_info['user_id'] !== (int) $user->getId()) {
             return $this->redirectTo('dashboard');
         }
 
+
         $data = [
             'formAction' => $this->url('talk_update'),
+            'talkCategories' => $this->getTalkCategories(),
+            'talkTypes' => $this->getTalkTypes(),
+            'talkLevels' => $this->getTalkLevels(),
             'id' => $talk_id,
             'title' => html_entity_decode($talk_info['title']),
             'description' => html_entity_decode($talk_info['description']),
@@ -142,7 +200,7 @@ class TalkController extends BaseController
         }
 
         // You can only create talks while the CfP is open
-        if (! $this->isCfpOpen(strtotime('now'))) {
+        if (! $this->service('callforproposal')->isOpen()) {
             $this->service('session')->set('flash', [
                 'type' => 'error',
                 'short' => 'Error',
@@ -154,6 +212,9 @@ class TalkController extends BaseController
 
         $data = [
             'formAction' => $this->url('talk_create'),
+            'talkCategories' => $this->getTalkCategories(),
+            'talkTypes' => $this->getTalkTypes(),
+            'talkLevels' => $this->getTalkLevels(),
             'title' => $req->get('title'),
             'description' => $req->get('description'),
             'type' => $req->get('type'),
@@ -186,7 +247,7 @@ class TalkController extends BaseController
         }
 
         // You can only create talks while the CfP is open
-        if (! $this->isCfpOpen(strtotime('now'))) {
+        if (! $this->service('callforproposal')->isOpen()) {
             $this->service('session')->set('flash', [
                 'type' => 'error',
                 'short' => 'Error',
@@ -211,12 +272,17 @@ class TalkController extends BaseController
             'user_id' => $req->get('user_id'),
         ];
 
-        $form = new TalkForm($request_data, $this->service('purifier'));
+        $form = $this->getTalkForm($request_data);
         $form->sanitize();
         $isValid = $form->validateAll();
 
         if ($isValid) {
             $sanitized_data = $form->getCleanData();
+
+            /* @var Locator $spot */
+            $spot = $this->service('spot');
+
+            $talk_mapper = $spot->mapper(\OpenCFP\Domain\Entity\Talk::class);
             $data = [
                 'title' => $sanitized_data['title'],
                 'description' => $sanitized_data['description'],
@@ -230,46 +296,55 @@ class TalkController extends BaseController
                 'user_id' => (int) $user->getId(),
             ];
 
-            /* @var Locator $spot */
-            $spot = $this->service('spot');
+            $talk = $talk_mapper->build($data);
 
-            $talk_mapper = $spot->mapper(\OpenCFP\Domain\Entity\Talk::class);
-            $talk = $talk_mapper->create($data);
+            try {
+                $talk_data = $talk_mapper->save($talk, ['relations' => true]);
+            } catch (\Exception $e) {
+                echo $e->getMessage();
+                die();
+            }
 
             $this->service('session')->set('flash', [
                 'type' => 'success',
                 'short' => 'Success',
-                'ext' => 'Successfully added talk.',
+                'ext' => 'Successfully saved talk.',
             ]);
 
             // send email to speaker showing submission
-            $this->sendSubmitEmail($this->app, $user->getLogin(), $talk->id);
+            $this->sendSubmitEmail($this->app, $user->getLogin(), $talk_data);
 
             return $this->redirectTo('dashboard');
         }
 
-        if (!$isValid) {
-            $data = [
-                'formAction' => $this->url('talk_create'),
-                'title' => $req->get('title'),
-                'description' => $req->get('description'),
-                'type' => $req->get('type'),
-                'level' => $req->get('level'),
-                'category' => $req->get('category'),
-                'desired' => $req->get('desired'),
-                'slides' => $req->get('slides'),
-                'other' => $req->get('other'),
-                'sponsor' => $req->get('sponsor'),
-                'buttonInfo' => 'Submit my talk!',
-            ];
+        $data = [
+            'formAction' => $this->url('talk_create'),
+            'talkCategories' => $this->getTalkCategories(),
+            'talkTypes' => $this->getTalkTypes(),
+            'talkLevels' => $this->getTalkLevels(),
+            'title' => $req->get('title'),
+            'description' => $req->get('description'),
+            'type' => $req->get('type'),
+            'level' => $req->get('level'),
+            'category' => $req->get('category'),
+            'desired' => $req->get('desired'),
+            'slides' => $req->get('slides'),
+            'other' => $req->get('other'),
+            'sponsor' => $req->get('sponsor'),
+            'buttonInfo' => 'Submit my talk!',
+        ];
 
-            $this->service('session')->set('flash', [
-                'type' => 'error',
-                'short' => 'Error',
-                'ext' => implode("<br>", $form->getErrorMessages()),
-            ]);
-        }
+        $this->service('session')->set('flash', [
+            'type' => 'error',
+            'short' => 'Error',
+            'ext' => implode("<br>", $form->getErrorMessages()),
+        ]);
 
+        $this->service('session')->set('flash', [
+            'type' => 'error',
+            'short' => 'Error',
+            'ext' => implode("<br>", $form->getErrorMessages()),
+        ]);
         $data['flash'] = $this->getFlash($this->app);
 
         return $this->render('talk/edit.twig', $data);
@@ -299,13 +374,16 @@ class TalkController extends BaseController
             'user_id' => $req->get('user_id'),
         ];
 
-        $form = new TalkForm($request_data, $this->service('purifier'));
+        $form = $this->getTalkForm($request_data);
         $form->sanitize();
         $isValid = $form->validateAll();
 
         if ($isValid) {
             $sanitized_data = $form->getCleanData();
-            $updated_at = new \DateTime();
+
+            /* @var Locator $spot */
+            $spot = $this->service('spot');
+            $talk_mapper = $spot->mapper(\OpenCFP\Domain\Entity\Talk::class);
             $data = [
                 'id' => (int) $sanitized_data['id'],
                 'title' => $sanitized_data['title'],
@@ -318,52 +396,53 @@ class TalkController extends BaseController
                 'other' => $sanitized_data['other'],
                 'sponsor' => $sanitized_data['sponsor'],
                 'user_id' => (int) $user->getId(),
-                'updated_at' => $updated_at,
+                'updated_at' => new \DateTime(),
             ];
 
-            /* @var Locator $spot */
-            $spot = $this->service('spot');
+            $talk = $talk_mapper->build($data);
 
-            $mapper = $spot->mapper(\OpenCFP\Domain\Entity\Talk::class);
-            $talk = $mapper->get($data['id']);
-
-            foreach ($data as $field => $value) {
-                $talk->$field = $value;
+            try {
+                $talk_data = $talk_mapper->save($talk, ['relations' => true]);
+            } catch (\Exception $e) {
+                echo $e->getMessage();
+                die();
             }
-
-            $mapper->save($talk);
 
             $this->service('session')->set('flash', [
                 'type' => 'success',
                 'short' => 'Success',
-                'ext' => 'Successfully updated talk.',
+                'ext' => 'Successfully saved talk.',
             ]);
+
+            // send email to speaker showing submission
+            $this->sendSubmitEmail($this->app, $user->getLogin(), $talk_data);
 
             return $this->redirectTo('dashboard');
         }
 
-        if (! $isValid) {
-            $data = [
-                'formAction' => $this->url('talk_update'),
-                'id' => $req->get('id'),
-                'title' => $req->get('title'),
-                'description' => $req->get('description'),
-                'type' => $req->get('type'),
-                'level' => $req->get('level'),
-                'category' => $req->get('category'),
-                'desired' => $req->get('desired'),
-                'slides' => $req->get('slides'),
-                'other' => $req->get('other'),
-                'sponsor' => $req->get('sponsor'),
-                'buttonInfo' => 'Update my talk!',
-            ];
+        $data = [
+            'formAction' => $this->url('talk_update'),
+            'talkCategories' => $this->getTalkCategories(),
+            'talkTypes' => $this->getTalkTypes(),
+            'talkLevels' => $this->getTalkLevels(),
+            'id' => $req->get('id'),
+            'title' => $req->get('title'),
+            'description' => $req->get('description'),
+            'type' => $req->get('type'),
+            'level' => $req->get('level'),
+            'category' => $req->get('category'),
+            'desired' => $req->get('desired'),
+            'slides' => $req->get('slides'),
+            'other' => $req->get('other'),
+            'sponsor' => $req->get('sponsor'),
+            'buttonInfo' => 'Update my talk!',
+        ];
 
-            $this->service('session')->set('flash', [
-                'type' => 'error',
-                'short' => 'Error',
-                'ext' => implode("<br>", $form->getErrorMessages()),
-            ]);
-        }
+        $this->service('session')->set('flash', [
+            'type' => 'error',
+            'short' => 'Error',
+            'ext' => implode("<br>", $form->getErrorMessages()),
+        ]);
 
         $data['flash'] = $this->getFlash($this->app);
 
@@ -380,7 +459,7 @@ class TalkController extends BaseController
         }
 
         // You can only delete talks while the CfP is open
-        if (! $this->isCfpOpen(strtotime('now'))) {
+        if (! $this->service('callforproposal')->isOpen()) {
             return $app->json(['delete' => 'no']);
         }
 

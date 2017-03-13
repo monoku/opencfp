@@ -25,41 +25,20 @@
         <label for="form-talk-type" class="col-sm-2 control-label">Talk Type</label>
         <div class="col-sm-10">
             <select id="form-talk-type" name="type" class="form-control">
-                <option value="talk" {% if type == 'talk' %}selected {% endif %}>Talk</option>
-                <option value="workshop" {% if type == 'workshop' %}selected {% endif %}>Workshop</option>
+                {% for typeKey, displayType in talkTypes %}
+                <option value="{{ typeKey }}" {% if type == typeKey %}selected {% endif %}>{{ displayType }}</option>
+                {% endfor %}
             </select>
         </div>
     </div>
+
     <div class="form-group">
         <label for="form-talk-category" class="col-sm-2 control-label">Talk Category</label>
         <div class="col-sm-10">
             <select id="form-talk-category" name="category" class="form-control">
-                <option value="3d_webgl_vr" {% if category == '3d_webgl_vr' %}selected {% endif %}>3D / WebGL / VR</option>
-                <option value="async" {% if category == 'async' %}selected {% endif %}>Async</option>
-                <option value="art" {% if category == 'art' %}selected {% endif %}>Art</option>
-                <option value="api" {% if category == 'api' %}selected {% endif %}>API</option>
-                <option value="audio_music" {% if category == 'audio_music' %}selected {% endif %}>Audio &amp; Music</option>
-                <option value="circuit_breakers" {% if category == 'circuit_breakers' %}selected {% endif %}>Circuit Breakers</option>
-                <option value="continuous_delivery" {% if category == 'continuous_delivery' %}selected {% endif %}>Continuous Delivery</option>
-                <option value="data_visualization" {% if category == 'data_visualization' %}selected {% endif %}>Data Visualization</option>
-                <option value="database_big data" {% if category == 'database_big data' %}selected {% endif %}>Database / Big Data</option>
-                <option value="dev_ops" {% if category == 'dev_ops' %}selected {% endif %}>Dev Ops</option>
-                <option value="dev_tools" {% if category == 'dev_tools' %}selected {% endif %}>Dev Tools</option>
-                <option value="distributed_programming" {% if category == 'distributed_programming' %}selected {% endif %}>Distributed Programming</option>
-                <option value="es_next" {% if category == 'es_next' %}selected {% endif %}>ES 6 | 2015 | 2016 | Next</option>
-                <option value="functional_programming" {% if category == 'functional_programming' %}selected {% endif %}>Functional Programming</option>
-                <option value="hardware" {% if category == 'hardware' %}selected {% endif %}>Hardware</option>
-                <option value="http_microservices" {% if category == 'http_microservices' %}selected {% endif %}>HTTP Microservices</option>
-                <option value="machine_learning" {% if category == 'machine_learning' %}selected {% endif %}>Machine Learning with JS</option>
-                <option value="new_frontend_technologies" {% if category == 'new_frontend_technologies' %}selected {% endif %}>New frontend technologies: React / Redux / Angular 2 / Ember 2</option>
-                <option value="nodejs" {% if category == 'nodejs' %}selected {% endif %}>Node.js</option>
-                <option value="other_js_languages" {% if category == 'other_js_languages' %}selected {% endif %}>Other JS Languages: TypeScript, Flow, Dart, ClojureScript, Elm, CoffeeScript</option>
-                <option value="performance" {% if category == 'performance' %}selected {% endif %}>Performance</option>
-                <option value="reactive_programming" {% if category == 'reactive_programming' %}selected {% endif %}>Reactive Programming</option>
-                <option value="security" {% if category == 'security' %}selected {% endif %}>Security</option>
-                <option value="testing" {% if category == 'testing' %}selected {% endif %}>Testing</option>
-                <option value="ui_ux" {% if category == 'ui_ux' %}selected {% endif %}>UI/UX</option>
-                <option value="other" {% if category == 'other' %}selected {% endif %}>Other</option>
+                {% for categoryKey, displayCategory in talkCategories %}
+                <option value="{{ categoryKey }}" {% if category == categoryKey %}selected {% endif %}>{{ displayCategory }}</option>
+                {% endfor %}
             </select>
         </div>
     </div>
@@ -67,9 +46,9 @@
         <label for="form-talk-level" class="col-sm-2 control-label">Talk Level</label>
         <div class="col-sm-10">
             <select id="form-talk-level" name="level" class="form-control">
-                <option value="entry" {% if level == 'entry' %}selected {% endif %}>Entry level</option>
-                <option value="mid" {% if level == 'mid' %}selected {% endif %}>Mid-level</option>
-                <option value="advanced" {% if level == 'advanced' %}selected {% endif %}>Advanced</option>
+                {% for levelKey, displayLevel in talkLevels %}
+                <option value="{{ levelKey }}" {% if level == levelKey %}selected {% endif %}>{{ displayLevel }}</option>
+                {% endfor %}
             </select>
         </div>
     </div>

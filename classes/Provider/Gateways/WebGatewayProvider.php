@@ -2,16 +2,17 @@
 
 namespace OpenCFP\Provider\Gateways;
 
-use Cartalyst\Sentry\Sentry;
+use Pimple\Container;
+use Pimple\ServiceProviderInterface;
+use Silex\Api\BootableProviderInterface;
 use Silex\Application;
 use Silex\ControllerCollection;
-use Silex\ServiceProviderInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Twig_Environment;
 
-class WebGatewayProvider implements ServiceProviderInterface
+class WebGatewayProvider implements BootableProviderInterface, ServiceProviderInterface
 {
-    public function register(Application $app)
+    public function register(Container $app)
     {
     }
 
@@ -21,11 +22,13 @@ class WebGatewayProvider implements ServiceProviderInterface
         $web = $app['controllers_factory'];
 
         $web->before(new RequestCleaner($app['purifier']));
-        $web->before(function (Request $request, Application $app) {
+        $web->before(function (Request $request, Container $app) {
             /* @var Twig_Environment $twig */
             $twig = $app['twig'];
 
-            $twig->addGlobal('current_page', $request->getRequestUri());
+            $twig->addGlobal('current_page', function () use ($app) {
+                return $app['request']->getRequestUri();
+            });
             $twig->addGlobal('cfp_open', strtotime('now') < strtotime($app->config('application.enddate') . ' 11:59 PM'));
 
             if ($app['sentry']->check()) {
@@ -99,6 +102,7 @@ class WebGatewayProvider implements ServiceProviderInterface
         $web->get('/admin/speakers/delete/{id}', 'OpenCFP\Http\Controller\Admin\SpeakersController::deleteAction')->bind('admin_speaker_delete');
         $web->get('/admin/admins', 'OpenCFP\Http\Controller\Admin\AdminsController::indexAction')->bind('admin_admins');
         $web->get('/admin/admins/{id}', 'OpenCFP\Http\Controller\Admin\AdminsController::removeAction')->bind('admin_admin_delete');
+        $web->get('/admin/admins/{id}/promote', 'OpenCFP\Http\Controller\Admin\AdminsController::promoteAction')->bind('admin_admin_promote');
 
         // Admin::Review
         $web->get('/admin/review', 'OpenCFP\Http\Controller\Admin\ReviewController::indexAction')->bind('admin_reviews');

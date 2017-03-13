@@ -115,33 +115,6 @@ class TalkSubmission
 
     private function isValidCategory($category)
     {
-        return in_array($category, [
-            '3d_webgl_vr',
-            'async',
-            'art',
-            'api',
-            'audio_music',
-            'circuit_breakers',
-            'continuous_delivery',
-            'data_visualization',
-            'database_big data',
-            'dev_ops',
-            'dev_tools',
-            'distributed_programming',
-            'es_next',
-            'functional_programming',
-            'hardware',
-            'http_microservices',
-            'machine_learning',
-            'new_frontend_technologies',
-            'nodejs',
-            'other_js_languages',
-            'performance',
-            'reactive_programming',
-            'security',
-            'testing',
-            'ui_ux',
-            'other',
-        ]);
+        return in_array($category, $this->getOption);
     }
 }

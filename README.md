@@ -6,6 +6,7 @@ OpenCFP is a PHP-based conference talk submission system.
 [![Build Status](https://travis-ci.org/opencfp/opencfp.svg?branch=master)](https://travis-ci.org/opencfp/opencfp)
 [![Code Climate](https://codeclimate.com/github/opencfp/opencfp/badges/gpa.svg)](https://codeclimate.com/github/opencfp/opencfp)
 [![Test Coverage](https://codeclimate.com/github/opencfp/opencfp/badges/coverage.svg)](https://codeclimate.com/github/opencfp/opencfp)
+[![Issue Count](https://codeclimate.com/github/opencfp/opencfp/badges/issue_count.svg)](https://codeclimate.com/github/opencfp/opencfp)
 
 ## README Contents
 
@@ -29,6 +30,7 @@ OpenCFP is a PHP-based conference talk submission system.
    * [Using the API](#json-api-usage)
  * [Command-line Utilities](#command-line-utilities)
    * [Admin Group Management](#admin-group-management)
+   * [User Management](#user-management)
    * [Clear Caches](#clear-caches)
    * [Scripts to Rule Them All](#scripts-rule-all)
  * [Testing](#testing)
@@ -63,29 +65,26 @@ to your event. However, anything you are willing to push back should be updated 
 keep the master branch generic for future event organizers that choose to use the system. You would then be able to
 merge master to your private branch and get updates when desired!
 
-Here are some issues that we would love to see contributions for:
-
-(Last updated November 19, 2015)
-
-* [Remind users with no talks submitted to send something](https://github.com/opencfp/opencfp/issues/159)
-* [Transition from Sentry to Silex Security](https://github.com/opencfp/opencfp/issues/163)
-* [Allow users to specify length of workshops](https://github.com/opencfp/opencfp/issues/254)
 
 <a name="requirements" />
 ## Requirements
 
- * PHP 5.5+
+ * PHP 7.0+
  * Apache 2+ with `mod_rewrite` enabled and an `AllowOverride all` directive in your `<Directory>` block is the recommended web server
  * Composer requirements are listed in [composer.json](composer.json).
- * You may need to install `php5-intl` extension for PHP. (`php-intl` on CentOS/RHEL-based distributions)
+ * You may need to install `php7.0-intl` extension for PHP. (`php-intl` on CentOS/RHEL-based distributions)
 
 <a name="installation" />
 ## Installation
 
 <a name="cloning-the-repository" />
+### Grab Latest Release
+
+It is recommended for you to always install the latest marked release. Go to `https://github.com/opencfp/opencfp/releases` to download it.
+
 ### Cloning the Repository
 
-Clone this project into your working directory.
+Clone this project into your working directory. We recommend always running the `master` branch as it was frequent contributions.
 
 Example:
 
@@ -120,7 +119,7 @@ ways to do that with common shells assuming we're using `production`:
 * zsh:  `export CFP_ENV = production`
 * fish: `set -x CFP_ENV production`
 
-Again, just use your preferred environment in place of `production` if required. 
+Again, just use your preferred environment in place of `production` if required.
 
 <a name="installing-composer-dependencies" />
 ### Installing Composer Dependencies
@@ -222,9 +221,14 @@ to consider:
 | Option                | Description                       |
 |:----------------------|:----------------------------------|
 | `application.enddate` | This is the date your call for proposals would end on. |
+| `application.coc_link`| Set this to the link for your conference code of conduct to require speakers to agree to the code of conduct at registration |
 | `secure_ssl`          | This should be enabled, if possible. Requires a valid SSL certificate. |
 | `database.*`          | This is the database information you collected above. |
 | `mail.*`              | This is SMTP configuration for sending mail. The application sends notifications on various system events. |
+| `talk.categories.*`   | dbkey: Display Name mapping for your talk categories |
+| `talk.types.*`        | dbkey: Display Name mapping for your talk types |
+| `talk.levels.*`       | dbkey: Display Name mapping for your talk levels |
+
 
 For example, if you wanted to setup Mailgun as your email provider, your mail configuration would look something like this:
 
@@ -587,6 +591,23 @@ Removing `speaker@opencfp.org` from the admin group:
 
 ```
 $ bin/opencfp admin:demote --env=production speaker@opencfp.org
+```
+
+<a name="user-management" />
+### User Management
+
+Users are needed for you system, and sometimes you want to add users via command line.
+
+Adding a speaker:
+
+```
+$ bin/opencfp user:create --first_name="Speaker" --last_name="Name" --email="speaker@opencfp.org" --password="somePassw0rd!"
+```
+
+Add an admin:
+
+```
+$ bin/opencfp user:create --first_name="Admin" --last_name="Name" --email="admin@opencfp.org" --password="somePassw0rd!" --admin
 ```
 
 <a name="clear-caches" />
