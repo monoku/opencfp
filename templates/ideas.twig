@@ -20,10 +20,9 @@
     <h4 class="headline--alpha">Topics</h4>
     <p>We've listed a few hot-topics to get you thinking about your proposal, nonetheless we recommend you be creative! We love to hear about new and different topics.</p>
     <ul>
-        {{talkCategories}}
-        {#% for typeKey, displayType in talkTypes %}
+        {% for typeKey, displayType in talkCategories %}
         <li>{{ displayType }}</li>
-        {% endfor %#}
+        {% endfor %}
     </ul>
 
     <h4 class="headline--alpha">Selection Process</h4>
