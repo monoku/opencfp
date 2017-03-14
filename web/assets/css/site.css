@@ -58,6 +58,10 @@ a:hover {
   color: #564f2d;
 }
 
+.section--light .btn-opencfp--light {
+    background-color: black;
+}
+
 .headline {
   margin: 0.75rem 0;
   padding: 0.5rem 0;
